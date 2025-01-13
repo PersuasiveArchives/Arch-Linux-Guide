@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Complete Arch Linux Installation Guide">
+    <title>Arch Linux Installation Guide</title>
+    <link rel="stylesheet" href="installguide.css">
+</head>
+<body>
+
+    <header>
+        <h1>Arch Linux Installation Guide</h1>
+        <nav>
+            <ul>
+                <li><a href="#intro">Introduction</a></li>
+                <li><a href="#requirements">Requirements</a></li>
+                <li><a href="#pre-installation">Pre-Installation</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#post-install">Post Installation</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="intro">
+            <h2>Introduction</h2>
+            <p>This document is your key to installing Arch Linux. Using the live system booted from an official installation image makes it easy to get started. The installation medium offers some great accessibility features, which are described on the page Install Arch Linux with accessibility options.</p>
+        </section>
+
+        <section id="requirements">
+            <h2>System Requirements</h2>
+            <ul>
+                <li>512 MB of RAM (2 or 4 GB recommended)</li>
+                <li>3 GB of free disk space (20 GB or more recommended)</li>
+                <li>Internet connection (Ethernet / Wi-Fi)</li>
+                <li>Arch Linux installation ISO</li>
+            </ul>
+        </section>
+
+        <section id="pre-installation">
+            <h2>Pre-Installation Steps</h2>
+            <h3> Prepare Installation Media</h3>
+            <p>Go to the Download page and get the ISO file or a netboot image, and the GnuPG signature for booting.</p>
+            <h4>Copying ISO File to the USB </h4>
+                <p>After doing the steps before installation, you need a USB drive. If you have one, download a tool that creates a live USB system. Research The <a href="liveusblist.html">USB System Tools</a>
+                </p>
+                <h4>Verify Signature</h4>
+                <p>It's important to check the image signature before you use it, mostly when downloading from an HTTP mirror, where downloads can get malicious images. </p>
+
+                
+                
+
+            <h4> Booting the live USB</h4>
+            <p>Just point the current boot device to the one with the Arch Linux installation medium on it. You'll usually see a message on the splash screen telling you to press a key during the POST phase to do this. Check your motherboard's manual for more info.
+                When the installation medium's boot loader menu appears.</p>
+                
+                    <p>If you used the ISO, select Arch Linux install medium and press Enter to enter the installation environment.
+                    If you used the Netboot image, choose a nearby mirror from the Mirror menu, then select Boot Arch Linux and press Enter.</p> 
+
+                    <p>You will be logged in on the virtual console as the root user and proceeded with a Zsh shell prompt.</p>
+        </section>
+
+        <section id="installation">
+            <h2>Installation Process</h2>
+
+            <h3>Step 1: Set Keyboard Layout</h3>
+            <p>The default console keymap is US. One of the layouts can be registered with:</p>
+            <pre><code># localectl list-keymaps</code></pre>
+
+            <h3>Step 2: Connect to the Internet</h3>
+            <p>Verify the network connection by typing <pre><code>www.archlinux.org</code></pre> If you are using an Ethernet, It's usually not necessary because it automatically detects.  <p>For Wi-Fi, use <code>iwctl</code> to connect.</p>
+            <p>For Mobile Broadband, use <code>mmcli</code> utility to connect to mobile broadband modem to the mobile network.</p>
+
+            <h3>Step 3: Partition the Disk</h3>
+            <p>When identified by the live system, disks are allocated to a storage devices like <code>/dev/sda</code>, <code>/dev/nvme01/</code> , <code>/dev/mmclk01</code> .
+              <p>In order to partition the disks use tools like</p>  
+                <code>fdisk</code> or <code>parted</code> to partition your disk. A common partitioning scheme is:</p>
+            <ul>
+                <li>One <strong>root partition</strong> (ext4)</li>
+                <li>One <strong>swap partition</strong> (optional)</li>
+                <li>For booting in UEFI mode: an EFI system partition.</li>
+
+                
+
+        
+            </ul>
+            <p>Example:</p>
+            <pre><code>fdisk /dev/sda</code></pre>
+            <p>The following partitions are required for a chosen device: </p>
+            <p>Root Partition <code>/dev/sda</code>, <code>/</code></p>
+            <p>booting in UEFI mode: an EFI system partition. <code>/efi/</code></p>
+
+            <div class="note">
+                
+                <strong>Note:</strong>
+                <ul>
+                    <li>Make sure you plan ahead and set up a long-term partitioning scheme to avoid risky and complicated conversion or re-partitioning procedures down the road.</li>
+                    <li>If your willing to create any stacked block devices for LVM, system encryption, or RAID, you should do it now.</li>
+                </ul></div>
+
+            <h3>Step 4: Format the Partitions</h3>
+            <p>Once the partitions have been created, each one must be formatted with the right file system.
+                <p>
+                    For an ideal example, generate a ext4 file system
+                </p>
+            <pre><code># mkfs.ext4 /dev/sda1</code></pre>
+
+            <p>If you created a partition for swap, initialize it with <code>mkswap</code></p>
+            <pre><code># mkswap /dev/swap_partition</code></pre>
+
+
+            <h3>Step 5: Mount the Filesystems</h3>
+            <p>Mount the root partition:</p>
+            <pre><code>mount /dev/sda1 /mnt</code></pre>
+
+            <h3>Step 6: Install the Base System</h3>
+            <p>Install the base system using <code>pacstrap</code>:</p>
+            <pre><code>pacstrap /mnt base linux linux-firmware</code></pre>
+            <p>
+                It's possible that the base package doesn't include all the tools from the live installation. If that's the case, you might need to think about installing more packages to get a fully functional base system. To install other packages or package groups, you could add their names to the pacstrap command above (space separated) or use pacman to install them while chrooted into the new system. You may want to consider installing: 
+            </p>
+            <ul>
+                <li>CPU microcode updates <code>amd-ucode</code> or <code>intel-ucode</code> for bugs in hardware / security fixes,</li>
+                <li>a set of tools for working with file systems that will be used on the system. For example, you can use it to create file systems and run fsck. </li>
+                <li>If you're going to use RAID or LVM on the system, you'll need to install utilities to access and manage them.</li>
+                <li>
+                    The linux-firmware doesn't include specific firmware for other devices. sof-firmware for onboard audio, linux-firmware-marvell for marvell wireless
+                </li>
+                <li>software recommended for networking like NetworkManager</li>
+                <li>a console text editor (e.g nano) to edit configuration files from the console.</li>
+
+            </ul>
+            
+
+            <h3>Step 7: Configure the System</h3>
+            <p>Generate the fstab file: </p>
+            <pre><code># genfstab -U /mnt >> /mnt/etc/fstab</code></pre>
+            <p>make sure to check <code>/mnt/etc/fstab</code> file, and edit it in case of errors. </p>
+            <h3>Step 8: Chroot into the System</h3>
+            <p>Change root into the new installed system:</p>
+            <pre><code>arch-chroot /mnt</code></pre>
+
+            <h3>Step 9: Set the Time Zone</h3>
+            <p>Link to the correct file to set the time zone:</p>
+            <pre><code>ln -sf /usr/share/zoneinfo/Region/City /etc/localtime</code></pre>
+
+            <h3>Step 10: Localization</h3>
+            <p>Edit the <code>/etc/locale.gen</code> file to uncomment your desired locales like <code>EN_US.UTF8</code>, then generate the locales:</p>
+            <pre><code>locale-gen</code></pre>
+            <p>Set the system locale:</p>
+            <pre><code>echo "LANG=en_US.UTF-8" > /etc/locale.conf</code></pre>
+
+            <h3>Step 11: Set Hostname</h3>
+            <p>Set your hostname to the name you want. Replace myhostname to your depending hostname:</p>
+            <pre><code>echo "myhostname" > /etc/hostname</code></pre>
+
+            <h3>Step 12: Install Bootloader</h3>
+            <p>We Recommend you installing a grub bootloader, For UEFI. Grub and efibootmgr</p>
+            <p>Install the GRUB bootloader:</p>
+            <pre><code>pacman -S grub</code></pre>
+            <p>Then install it on the MBR:</p>
+            <pre><code>grub-install --target=i386-pc /dev/sda</code></pre>
+            <p>Finally, generate the GRUB configuration file:</p>
+            <pre><code>grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
+
+            <h3>Step 13: Reboot</h3>
+            <p>Exit chroot and unmount the partitions:</p>
+            <pre><code>exit</code></pre>
+            <pre><code>umount -R /mnt</code></pre>
+            <p>Reboot the system:</p>
+            <pre><code>reboot</code></pre>
+        </section>
+
+        <section id="post-install">
+            <h2>Post-Installation</h2>
+            <h3>Step 1: Install Network Tools</h3>
+            
+            <div class="note">
+                <h2>Note:</h2>
+                <p>
+                    If you installed the network software during the pacstrap installation, you can skip this step.
+                </p>
+            </div>
+                <p>Install <code>networkmanager</code> to manage network connections:</p>
+            
+            <pre><code>pacman -S networkmanager</code></pre>
+
+            <h3>Step 2: Set Root Password</h3>
+            <p>Set the root password:</p>
+            <pre><code>passwd</code></pre>
+
+            <h3>Step 3: Install a Desktop Environment (optional, but recommended)</h3>
+            <div class="note">
+                <h3>Note:</h3>
+                <p>
+                    If you preferably use Graphical User Interfaces (GUI), then do this step, as it is suggested for people who like GUIs.
+                </p>
+            </div>
+            <p>To install a desktop environment, choose your desktop environment you like.</p>
+            <ul>
+                <li><strong>GNOME</strong> - Aims to be simple and easy
+                    <pre><code>sudo pacman -S gnome gnome-extra</code></pre>
+                </li>
+                <li><strong>KDE Plasma</strong> - Customizable and feature-rich desktop environment and its flexible design.
+                    <pre><code>sudo pacman -S plasma kde-applications</code></pre>
+                </li>
+                <li><strong>Xfce</strong> - lightweight and fast desktop environment, ideal for older hardware or users who prefer comprehensibility.
+                    <pre><code>sudo pacman -S xfce4 xfce4-goodies</code></pre>
+                </li>
+                <li><strong>Cinnamon</strong> - desktop environment with a same interface, as to GNOME 2.
+                    <pre><code>sudo pacman -S cinnamon</code></pre>
+                </li>
+                <li><strong>MATE</strong> - A continuation of the GNOME 2 desktop, designed for those who prefer a classic interface.
+                    <pre><code>sudo pacman -S mate mate-extra</code></pre>
+                </li>
+                <li><strong>Budgie</strong> - A simple, elegant desktop environment with a modern design.
+                    <pre><code>sudo pacman -S budgie-desktop</code></pre>
+                </li>
+                <li><strong>LXQt</strong> - A lightweight and fast desktop environment that is a successor to LXDE. Ideal for older hardwares or users who prefer comprehensibility
+                    <pre><code>sudo pacman -S lxqt</code></pre>
+                </li>
+            </ul>
+            
+
+            <h3>Step 4: Enable NetworkManager</h3>
+            <p>Enable NetworkManager to start at boot:</p>
+            <pre><code>systemctl enable NetworkManager</code></pre>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>Troubleshooting</h2>
+            <h3>Problem: No Internet Connection</h3>
+            <p>Ensure that your network interface is up by using <code>ip link</code> to verify, and use <code>iwctl</code> or <code>systemctl start NetworkManager</code> to troubleshoot Wi-Fi or Ethernet connections.</p>
+            <h3>Arch Linux Not Booting</h3>
+<p>
+    If Arch Linux is not booting, it could be due to various reasons, including a misconfigured bootloader, incorrect kernel installation, or filesystem issues. Here's what you can do to troubleshoot and fix the issue:
+</p>
+
+<ol>
+    <li>
+        <strong>Check Bootloader Installation:</strong> Ensure that you have properly installed a bootloader (GRUB, systemd-boot, etc.). If the bootloader is missing or misconfigured, the system won't boot. To fix this, follow these steps:
+        <ul>
+            <li>Boot from an Arch live USB or a rescue system.</li>
+            <li>Mount your root partition and other necessary partitions, such as /boot, /efi, etc.</li>
+            <li>Chroot into your installed system using:
+                <pre><code>sudo mount /dev/sdX1 /mnt </code></pre>
+                <pre><code>sudo mount --bind /dev /mnt/dev</code></pre>
+                <pre><code>sudo mount --bind /proc /mnt/proc</code></pre>
+                <pre><code>sudo mount --bind /sys /mnt/sys</code></pre>
+                <pre><code>sudo chroot /mnt</code></pre>
+            </li>
+            <li>Reinstall or configure the bootloader, for example, for GRUB:
+                <pre><code>sudo pacman -S grub</code></pre>
+                <pre><code>sudo grub-install --target=i386-pc /dev/sdX</code></pre>
+                <pre><code>sudo grub-mkconfig -o /boot/grub/grub.cfg</code></pre>
+            </li>
+        </ul>
+    </li>
+    
+    <li>
+        <strong>Kernel Issues:</strong> Sometimes the issue is with the kernel not being installed or configured properly. Ensure that the correct kernel is installed (e.g., <code>linux</code> or <code>linux-lts</code>). If necessary, reinstall the kernel:
+        <ul>
+            <li>Check if the kernel is installed:
+                <pre><code>pacman -Q | grep linux</code></pre>
+            </li>
+            <li>If the kernel is missing, install it:
+                <pre><code>sudo pacman -S linux</code></pre>
+            </li>
+            <li>If you prefer the LTS kernel, install it instead:
+                <pre><code>sudo pacman -S linux-lts</code></pre>
+            </li>
+        </ul>
+    </li>
+
+    <li>
+        <strong>Filesystem Check:</strong> A corrupted filesystem could prevent the system from booting properly. To check and repair the filesystem:
+        <ul>
+            <li>Boot from a live USB or a rescue system.</li>
+            <li>Run <code>fsck</code> on the root partition to check for errors:
+                <pre><code>sudo fsck /dev/sdX1</code></pre>
+            </li>
+            <li>Follow the prompts to fix any errors, if found.</li>
+        </ul>
+    </li>
+
+    <li>
+        <strong>Check Boot Parameters:</strong> Sometimes, the boot parameters in the bootloader configuration can be incorrect. Review the configuration file for your bootloader (e.g., <code>/boot/grub/grub.cfg</code> for GRUB) and make sure the correct kernel is selected. For example:
+        <pre><code>linux /vmlinuz-linux root=/dev/sdX1 rw</code></pre>
+    </li>
+
+    <li>
+        <strong>Review Boot Logs:</strong> If the system boots but encounters errors, examine the boot logs to identify the problem. For example, check the <code>dmesg</code> logs or the journal logs:
+        <ul>
+            <li>Check the kernel boot logs with:
+                <pre><code>dmesg</code></pre>
+            </li>
+            <li>Check the system logs with:
+                <pre><code>journalctl -xe</code></pre>
+            </li>
+        </ul>
+    </li>
+</ol>
+
+<p>
+ If the problem persists, consider seeking help on the Arch Linux forums or checking the Arch Wiki for additional troubleshooting steps.
+</p>
+
+            <h3>Package Management Issues</h3>
+            <h4>Database Lock</h4>
+            <li> If you encounter an error like <code>pacman: could not lock database</code>, ensure no other package manager processes are running (<code>ps aux | grep pacman</code>). If none are running, remove the lock file:
+                <pre><code>sudo rm /var/lib/pacman/db.lck</code></pre>
+              </li>
+              <li>Corrupted Packages: In case of issues like package corruption, you can try forcing a refresh of the package database:
+                <pre><code>sudo pacman -Syyu</code></pre>
+              </li>
+              <li>Partial Upgrades: Arch doesn’t support partial upgrades, so always keep your system up-to-date. If packages break after an update, make sure everything is updated to the latest version:
+                <pre><code>sudo pacman -Syu</code></pre>
+              </li>
+              
+              
+        </section>
+    </main>
+
+
+</body>
+</html>
