@@ -196,7 +196,7 @@
             <div class="note">
                 <h3>Note:</h3>
                 <p>
-                    If you preferably use Graphical User Interfaces (GUI), then do this step, as it is suggested for people who like GUIs.
+                    To make your system easier to use and improve the appearance of the graphical interface, it is recommended that you install a Desktop Environment (DE). A DE provides a simple and user-friendly environment, including graphical tools and utilities to make it easier to interact with the operating system.
                 </p>
             </div>
             <p>To install a desktop environment, choose your desktop environment you like.</p>
@@ -319,6 +319,13 @@
               <li>Partial Upgrades: Arch doesn’t support partial upgrades, so always keep your system up-to-date. If packages break after an update, make sure everything is updated to the latest version:
                 <pre><code>sudo pacman -Syu</code></pre>
               </li>
+              
+              <h3>File System Problems.</h3>
+              <ul>
+                <li><strong>Filesystem Check</strong>: Run a filesystem check if the system reports issues with filesystems.
+                  <pre><code>sudo fsck /dev/sdXn</code></pre>
+                </li>
+              </ul>
               
               
         </section>
