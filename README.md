@@ -1,2 +1,2 @@
 # Arch-Linux-Guide
-Tutorials On Arch
+Unofficial but Arch Linux Guide for offline use
